@@ -8,17 +8,11 @@ The contract lives entirely on L2 / involves no direct L1 interacts; writing, de
 
 Set the values shown in `.env-sample` as environmental variables. To copy it into a `.env` file:
 
-```bash
-cp .env-sample .env
-```
-
 (you'll still need to edit some variables, i.e., `DEVNET_PRIVKEY`)
 
 ### Run Demo
 
-```bash
-yarn run exec
-```
+
 
 ## Curious to see the output on the Arbitrum chain?
 
