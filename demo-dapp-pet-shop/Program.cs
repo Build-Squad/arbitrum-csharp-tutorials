@@ -14,19 +14,24 @@ class Program
 {
     static void Main(string[] args)
     {
+        // Determine the base directory for the solution
+        var baseDirectory = AppContext.BaseDirectory;
+
+        // Build the path to the shared appsettings.json file
+        var sharedSettingsPath = Path.Combine(baseDirectory, @"..\..\..\..\SharedSettings\appsettings.json");
+
         // Build configuration
         var builder = new ConfigurationBuilder()
-            .SetBasePath(AppContext.BaseDirectory)
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+            .SetBasePath(baseDirectory)
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile(sharedSettingsPath, optional: true, reloadOnChange: true);
 
         IConfiguration configuration = builder.Build();
 
         // Read values from appsettings.json
         var devnetPrivKey = configuration["DevelopmentSettings:DEVNET_PRIVKEY"];
+        var l1Rpc = configuration["DevelopmentSettings:L1RPC"];
         var l2Rpc = configuration["DevelopmentSettings:L2RPC"];
-
-        Console.WriteLine($"DEVNET_PRIVKEY: {devnetPrivKey}");
-        Console.WriteLine($"L2RPC: {l2Rpc}");
 
         try
         {
