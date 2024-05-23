@@ -15,22 +15,22 @@ We show how you can use broadly supported Ethereum ecosystem tooling (Hardhat, E
 
 - ⤴️ 🔹 [Deposit Ether](./Eth-Deposit/)
 - ⤵️ 🔹 [Withdraw Ether](./Eth-Withdraw/)
-- ⤴️ 💸 [Deposit Token](./token-deposit/)
-- ⤵️ 💸 [Withdraw token](./token-withdraw/)
+- ⤴️ 💸 [Deposit Token](./Token-Deposit/)
+- ⤵️ 💸 [Withdraw token](./Token-Withdraw/)
 
 #### :white_check_mark: General Interop
 
 - 🤝 [Greeter](./Greeter/) (L1 to L2)
-- 📤 [Outbox](./outbox-execute/) (L2 to L1)
-- ⏰ [L1 Confirmation Checker](./l1-confirmation-checker/)
-- ⏰ [L2 block verification in assertion](./l2-block-verification-in-assertion/)
+- 📤 [Outbox](./Outbox-Execute/) (L2 to L1)
+- ⏰ [L1 Confirmation Checker](./L1-Confirmation-Checker/)
+- ⏰ [L2 block verification in assertion](./L2-Block-Verification-In-Assertion/)
 
 #### :white_check_mark: Advanced Features
 
-- ®️ [Arb Address Table](./address-table/)
-- 🌉 [Bridging Custom Token](./custom-token-bridging/)
-- ✈️ [Delayed inbox message(l2MSG)](./delayedInbox-l2msg/)
-- 🎁 [Redeem Retryable Ticket](./redeem-failed-retryable/)
-- 🌀 [Deposit Ether or Tokens from L1 to L3](./l1-l3-teleport/)
+- ®️ [Arb Address Table](./Address-Table/)
+- 🌉 [Bridging Custom Token](./Custom-Token-Bridging/)
+- ✈️ [Delayed inbox message(l2MSG)](./DelayedInbox-L2msg/)
+- 🎁 [Redeem Retryable Ticket](./Redeem-Failed-Retryable/)
+- 🌀 [Deposit Ether or Tokens from L1 to L3](./L1-L3-Teleport/)
 
 <p align="center"><img src="assets/logo.svg" width="300"></p>
