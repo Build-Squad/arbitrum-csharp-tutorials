@@ -10,18 +10,14 @@ using static Arbitrum.DataEntities.NetworkUtils;
 
 using Arbitrum.AssetBridgerModule;
 using Arbitrum.DataEntities;
+using SharedSettings;
 
 public class Program
 {
     public static async Task Main(string[] args)
     {
 
-        // Build configuration
-        var builder = new ConfigurationBuilder()
-            .SetBasePath(AppContext.BaseDirectory)
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-
-        IConfiguration configuration = builder.Build();
+        IConfiguration configuration = ConfigurationHelper.LoadConfiguration();
 
         // Read values from appsettings.json
         var devnetPrivKey = configuration["DevelopmentSettings:DEVNET_PRIVKEY"];
@@ -53,15 +49,15 @@ public class Program
         }
         Console.WriteLine("Wallet properly funded: initiating withdrawal now");
 
-        var l2Network = await GetL2NetworkAsync(l2Provider);
-        var ethBridger = new EthBridger(l2Network); // Replace with actual EthBridger implementation
+        var l2Network = await GetL2Network(l2Provider);
+        var ethBridger = new EthBridger(l2Network);
 
         var l2Signer = new SignerOrProvider(account, l2Provider);
 
         var withdrawTx = await ethBridger.Withdraw(new EthWithdrawParams { L2Signer = l2Signer, DestinationAddress = l2WalletAddress, Amount = ethFromL2WithdrawAmount });
-        var withdrawRec = await l2Provider.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(withdrawTx);
+        //var withdrawRec = await l2Provider.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(withdrawTx);
 
-        Console.WriteLine($"Ether withdrawal initiated! 🥳 {withdrawRec.TransactionHash}");
+        Console.WriteLine($"Ether withdrawal initiated! 🥳 {withdrawTx.TransactionHash}");
 
         Console.WriteLine("To claim funds (after dispute period), see outbox-execute repo 🫡");
     }

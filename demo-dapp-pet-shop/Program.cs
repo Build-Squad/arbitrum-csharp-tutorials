@@ -1,4 +1,5 @@
 ﻿using System;
+using Arbitrum.DataEntities;
 using Arbitrum.Utils;
 using Microsoft.Extensions.Configuration;
 using Nethereum.ABI.FunctionEncoding.Attributes;
@@ -6,27 +7,20 @@ using Nethereum.Contracts;
 using Nethereum.Contracts.ContractHandlers;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Hex.HexTypes;
+using Nethereum.JsonRpc.Client;
+using Nethereum.RPC.Eth.DTOs;
+using Nethereum.Accounts;
+using Nethereum.Util;
 using Nethereum.Web3;
-using Nethereum.Web3.Accounts;
+using SharedSettings;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using Nethereum.Web3.Accounts;
 
 class Program
 {
     static void Main(string[] args)
     {
-        // Determine the base directory for the solution
-        var baseDirectory = AppContext.BaseDirectory;
-
-        // Build the path to the shared appsettings.json file
-        var sharedSettingsPath = Path.Combine(baseDirectory, @"..\..\..\..\SharedSettings\appsettings.json");
-
-        // Build configuration
-        var builder = new ConfigurationBuilder()
-            .SetBasePath(baseDirectory)
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .AddJsonFile(sharedSettingsPath, optional: true, reloadOnChange: true);
-
-        IConfiguration configuration = builder.Build();
+        IConfiguration configuration = ConfigurationHelper.LoadConfiguration();
 
         // Read values from appsettings.json
         var devnetPrivKey = configuration["DevelopmentSettings:DEVNET_PRIVKEY"];
@@ -37,17 +31,28 @@ class Program
         {
             Console.WriteLine("Simple Pet Shop DApp");
 
-            var account = new Account(devnetPrivKey);
+            var wallet = new Account("0x45b8c07d7aeb36e4474d9e72790a0194885243fbb6dd62169d39b402feb43386");
+            var web3 = new Web3(wallet, l2Rpc);
 
-            var web3 = new Web3(account, l2Rpc);
+            //web3.Client.OverridingRequestInterceptor = new GethPoAMiddleware();
+            //web3.Client.OverridingRequestInterceptor = new SignAndSendRawMiddleware(account);
 
-            Console.WriteLine("Your wallet address: " + account.Address);
+            Console.WriteLine("Your wallet address: " + wallet.Address);
 
             // Define the deployment message
-            var deploymentMessage = new PetDogShopDeployment();
+            var deployment = new PetDogShopDeployment()
+            {
+                FromAddress = wallet.Address,
+            };
+            var transactionInput = deployment.CreateTransactionInput();
+
+            // Estimate gas for deployment
+            var gasEstimate = web3.Eth.GetContractDeploymentHandler<PetDogShopDeployment>()
+                                            .EstimateGasAsync(deployment).Result;
+            deployment.Gas = gasEstimate;
 
             var transactionReceiptDeployment = web3.Eth.GetContractDeploymentHandler<PetDogShopDeployment>()
-                                                    .SendRequestAndWaitForReceiptAsync(deploymentMessage).Result;
+                                                    .SendRequestAndWaitForReceiptAsync(deployment).Result;
 
             var contractAddress = transactionReceiptDeployment.ContractAddress;
 
@@ -55,7 +60,7 @@ class Program
 
             var contractHandler = web3.Eth.GetContractHandler(contractAddress);
 
-            var contract = LoadContractUtils.LoadContract("Adoption", web3, account.Address, true).Result;
+            var contract = LoadContractUtils.LoadContract("Adoption", web3, wallet.Address, true).Result;
 
             var adoptFunction = contract.GetFunction("adopt");
 
@@ -64,9 +69,9 @@ class Program
 
             // Adopting a pet
             Console.WriteLine("Adopting pet:");
-            var gas = adoptFunction.EstimateGasAsync(account.Address, 100);
+            var gas = adoptFunction.EstimateGasAsync(wallet.Address).Result;
 
-            var adoptionReceipt = adoptFunction.SendTransactionAndWaitForReceiptAsync(account.Address).Result;
+            var adoptionReceipt = adoptFunction.SendTransactionAndWaitForReceiptAsync(wallet.Address).Result;
 
             // Check if the adoption event was emitted
             if (adoptionReceipt.Logs.Count > 0)
@@ -90,21 +95,17 @@ class Program
 
             var adopters = getAdoptersFunction.CallAsync<string[]>().Result;
 
-
             Console.WriteLine("All pet owners:");
 
             foreach (var a in adopters)
             {
                 Console.WriteLine(a);
             }
-
-
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex);
         }
-
     }
     public partial class PetDogShopDeployment : ContractDeploymentMessage
     {
@@ -118,5 +119,118 @@ class Program
     {
         [Parameter("uint256", "petId", 1)]
         public int PetId { get; set; }
+    }
+    public class GethPoAMiddleware : RequestInterceptor
+    {
+        public override async Task<object> InterceptSendRequestAsync<T>(
+            Func<RpcRequest, string, Task<T>> interceptedSendRequestAsync, RpcRequest request,
+            string route = null)
+        {
+            // Modify the request if needed (e.g., add extra headers, modify payload, etc.)
+            return await interceptedSendRequestAsync(request, route).ConfigureAwait(false);
+        }
+
+        public override async Task InterceptSendRequestAsync(
+            Func<RpcRequest, string, Task> interceptedSendRequestAsync, RpcRequest request,
+            string route = null)
+        {
+            // Modify the request if needed (e.g., add extra headers, modify payload, etc.)
+            await interceptedSendRequestAsync(request, route).ConfigureAwait(false);
+        }
+
+        public override async Task<object> InterceptSendRequestAsync<T>(
+            Func<string, string, object[], Task<T>> interceptedSendRequestAsync, string method,
+            string route = null, params object[] paramList)
+        {
+            // Modify the request if needed (e.g., add extra headers, modify payload, etc.)
+            return await interceptedSendRequestAsync(method, route, paramList).ConfigureAwait(false);
+        }
+
+        public override Task InterceptSendRequestAsync(
+            Func<string, string, object[], Task> interceptedSendRequestAsync, string method,
+            string route = null, params object[] paramList)
+        {
+            // Modify the request if needed (e.g., add extra headers, modify payload, etc.)
+            return interceptedSendRequestAsync(method, route, paramList);
+        }
+    }
+    public class SignAndSendRawMiddleware : RequestInterceptor
+    {
+        private readonly Account _account;
+        private readonly Web3 _provider;
+
+        public SignAndSendRawMiddleware(Account account)
+        {
+            _account = account;
+            _provider = new Web3(_account);
+        }
+
+        public override async Task<object> InterceptSendRequestAsync<T>(
+            Func<RpcRequest, string, Task<T>> interceptedSendRequestAsync, RpcRequest request,
+            string route = null)
+        {
+            if (request.Method == "eth_sendTransaction")
+            {
+                var transactionInput = request.RawParameters[0] as TransactionInput;
+                if (transactionInput != null)
+                {
+                    var txnHash = await _account.TransactionManager.SendTransactionAsync(transactionInput);
+                    return txnHash;
+                }
+            }
+
+            return await interceptedSendRequestAsync(request, route).ConfigureAwait(false);
+        }
+
+        public override async Task InterceptSendRequestAsync(
+            Func<RpcRequest, string, Task> interceptedSendRequestAsync, RpcRequest request,
+            string route = null)
+        {
+            if (request.Method == "eth_sendTransaction")
+            {
+                var transactionInput = request.RawParameters[0] as TransactionInput;
+                if (transactionInput != null)
+                {
+                    var txnHash = await _account.TransactionManager.SendTransactionAsync(transactionInput);
+                    return;
+                }
+            }
+
+            await interceptedSendRequestAsync(request, route).ConfigureAwait(false);
+        }
+
+        public override async Task<object> InterceptSendRequestAsync<T>(
+            Func<string, string, object[], Task<T>> interceptedSendRequestAsync, string method,
+            string route = null, params object[] paramList)
+        {
+            if (method == "eth_sendTransaction" && paramList.Length > 0 && paramList[0] is TransactionInput)
+            {
+                var transactionInput = paramList[0] as TransactionInput;
+                if (transactionInput != null)
+                {
+                    var txnHash = await _account.TransactionManager.SendTransactionAsync(transactionInput);
+                    return txnHash;
+                }
+            }
+
+            return await interceptedSendRequestAsync(method, route, paramList).ConfigureAwait(false);
+        }
+
+        public override Task InterceptSendRequestAsync(
+            Func<string, string, object[], Task> interceptedSendRequestAsync, string method,
+            string route = null, params object[] paramList)
+        {
+            if (method == "eth_sendTransaction" && paramList.Length > 0 && paramList[0] is TransactionInput)
+            {
+                var transactionInput = paramList[0] as TransactionInput;
+                if (transactionInput != null)
+                {
+                    var txnHash = _account.TransactionManager.SendTransactionAsync(transactionInput).Result;
+                    return Task.FromResult(txnHash);
+                }
+            }
+
+            return interceptedSendRequestAsync(method, route, paramList);
+        }
     }
 }
