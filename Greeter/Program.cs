@@ -17,18 +17,14 @@ using Arbitrum.Message.Tests.Integration;
 using Arbitrum.Message;
 using static Arbitrum.Utils.Lib;
 using Nethereum.Hex.HexTypes;
+using SharedSettings;
 
 public class Program
 {
 
     public static async Task Main(string[] args)
     {
-        // Build configuration
-        var builder = new ConfigurationBuilder()
-            .SetBasePath(AppContext.BaseDirectory)
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-
-        IConfiguration configuration = builder.Build();
+        IConfiguration configuration = ConfigurationHelper.LoadConfiguration();
 
         // Read values from appsettings.json
         var devnetPrivKey = configuration["DevelopmentSettings:DEVNET_PRIVKEY"];
