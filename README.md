@@ -17,8 +17,7 @@ We show how you can use broadly supported Ethereum ecosystem tooling (Hardhat, E
 - ⤵️ 🔹 [Withdraw Ether](./Eth-Withdraw/)
 - ⤴️ 💸 [Deposit Token](./Token-Deposit/)
 - ⤵️ 💸 [Withdraw token](./Token-Withdraw/)
-- -  ![image](https://github.com/Build-Squad/arbitrum-csharp-tutorials/assets/151494725/09ebc481-bf44-4421-8f4f-9cc7d611a28d)
-🔹 [Gas Estimation](./Gas-Estimation/)
+- 🧯 🔹 [Gas Estimation](./Gas-Estimation/)
 
 #### :white_check_mark: General Interop
 
