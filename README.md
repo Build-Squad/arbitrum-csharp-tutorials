@@ -17,6 +17,8 @@ We show how you can use broadly supported Ethereum ecosystem tooling (Hardhat, E
 - ⤵️ 🔹 [Withdraw Ether](./Eth-Withdraw/)
 - ⤴️ 💸 [Deposit Token](./Token-Deposit/)
 - ⤵️ 💸 [Withdraw token](./Token-Withdraw/)
+- -  ![image](https://github.com/Build-Squad/arbitrum-csharp-tutorials/assets/151494725/09ebc481-bf44-4421-8f4f-9cc7d611a28d)
+🔹 [Gas Estimation](./Gas-Estimation/)
 
 #### :white_check_mark: General Interop
 
@@ -29,8 +31,5 @@ We show how you can use broadly supported Ethereum ecosystem tooling (Hardhat, E
 
 - ®️ [Arb Address Table](./Address-Table/)
 - 🌉 [Bridging Custom Token](./Custom-Token-Bridging/)
-- ✈️ [Delayed inbox message(l2MSG)](./DelayedInbox-L2msg/)
-- 🎁 [Redeem Retryable Ticket](./Redeem-Failed-Retryable/)
-- 🌀 [Deposit Ether or Tokens from L1 to L3](./L1-L3-Teleport/)
 
 <p align="center"><img src="assets/logo.svg" width="300"></p>
