@@ -1,0 +1,12 @@
+{
+  "devDependencies": {
+    "@arbitrum/sdk": "^3.4.1",
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@nomiclabs/hardhat-waffle": "^2.0.6",
+    "arb-shared-dependencies": "^1.0.0",
+    "chai": "^5.1.1",
+    "dotenv": "^16.4.5",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.22.4"
+  }
+}

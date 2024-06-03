@@ -31,11 +31,8 @@ class Program
         {
             Console.WriteLine("Simple Pet Shop DApp");
 
-            var wallet = new Account("0x45b8c07d7aeb36e4474d9e72790a0194885243fbb6dd62169d39b402feb43386");
+            var wallet = new Account(devnetPrivKey);
             var web3 = new Web3(wallet, l2Rpc);
-
-            //web3.Client.OverridingRequestInterceptor = new GethPoAMiddleware();
-            //web3.Client.OverridingRequestInterceptor = new SignAndSendRawMiddleware(account);
 
             Console.WriteLine("Your wallet address: " + wallet.Address);
 
@@ -119,118 +116,5 @@ class Program
     {
         [Parameter("uint256", "petId", 1)]
         public int PetId { get; set; }
-    }
-    public class GethPoAMiddleware : RequestInterceptor
-    {
-        public override async Task<object> InterceptSendRequestAsync<T>(
-            Func<RpcRequest, string, Task<T>> interceptedSendRequestAsync, RpcRequest request,
-            string route = null)
-        {
-            // Modify the request if needed (e.g., add extra headers, modify payload, etc.)
-            return await interceptedSendRequestAsync(request, route).ConfigureAwait(false);
-        }
-
-        public override async Task InterceptSendRequestAsync(
-            Func<RpcRequest, string, Task> interceptedSendRequestAsync, RpcRequest request,
-            string route = null)
-        {
-            // Modify the request if needed (e.g., add extra headers, modify payload, etc.)
-            await interceptedSendRequestAsync(request, route).ConfigureAwait(false);
-        }
-
-        public override async Task<object> InterceptSendRequestAsync<T>(
-            Func<string, string, object[], Task<T>> interceptedSendRequestAsync, string method,
-            string route = null, params object[] paramList)
-        {
-            // Modify the request if needed (e.g., add extra headers, modify payload, etc.)
-            return await interceptedSendRequestAsync(method, route, paramList).ConfigureAwait(false);
-        }
-
-        public override Task InterceptSendRequestAsync(
-            Func<string, string, object[], Task> interceptedSendRequestAsync, string method,
-            string route = null, params object[] paramList)
-        {
-            // Modify the request if needed (e.g., add extra headers, modify payload, etc.)
-            return interceptedSendRequestAsync(method, route, paramList);
-        }
-    }
-    public class SignAndSendRawMiddleware : RequestInterceptor
-    {
-        private readonly Account _account;
-        private readonly Web3 _provider;
-
-        public SignAndSendRawMiddleware(Account account)
-        {
-            _account = account;
-            _provider = new Web3(_account);
-        }
-
-        public override async Task<object> InterceptSendRequestAsync<T>(
-            Func<RpcRequest, string, Task<T>> interceptedSendRequestAsync, RpcRequest request,
-            string route = null)
-        {
-            if (request.Method == "eth_sendTransaction")
-            {
-                var transactionInput = request.RawParameters[0] as TransactionInput;
-                if (transactionInput != null)
-                {
-                    var txnHash = await _account.TransactionManager.SendTransactionAsync(transactionInput);
-                    return txnHash;
-                }
-            }
-
-            return await interceptedSendRequestAsync(request, route).ConfigureAwait(false);
-        }
-
-        public override async Task InterceptSendRequestAsync(
-            Func<RpcRequest, string, Task> interceptedSendRequestAsync, RpcRequest request,
-            string route = null)
-        {
-            if (request.Method == "eth_sendTransaction")
-            {
-                var transactionInput = request.RawParameters[0] as TransactionInput;
-                if (transactionInput != null)
-                {
-                    var txnHash = await _account.TransactionManager.SendTransactionAsync(transactionInput);
-                    return;
-                }
-            }
-
-            await interceptedSendRequestAsync(request, route).ConfigureAwait(false);
-        }
-
-        public override async Task<object> InterceptSendRequestAsync<T>(
-            Func<string, string, object[], Task<T>> interceptedSendRequestAsync, string method,
-            string route = null, params object[] paramList)
-        {
-            if (method == "eth_sendTransaction" && paramList.Length > 0 && paramList[0] is TransactionInput)
-            {
-                var transactionInput = paramList[0] as TransactionInput;
-                if (transactionInput != null)
-                {
-                    var txnHash = await _account.TransactionManager.SendTransactionAsync(transactionInput);
-                    return txnHash;
-                }
-            }
-
-            return await interceptedSendRequestAsync(method, route, paramList).ConfigureAwait(false);
-        }
-
-        public override Task InterceptSendRequestAsync(
-            Func<string, string, object[], Task> interceptedSendRequestAsync, string method,
-            string route = null, params object[] paramList)
-        {
-            if (method == "eth_sendTransaction" && paramList.Length > 0 && paramList[0] is TransactionInput)
-            {
-                var transactionInput = paramList[0] as TransactionInput;
-                if (transactionInput != null)
-                {
-                    var txnHash = _account.TransactionManager.SendTransactionAsync(transactionInput).Result;
-                    return Task.FromResult(txnHash);
-                }
-            }
-
-            return interceptedSendRequestAsync(method, route, paramList);
-        }
     }
 }
