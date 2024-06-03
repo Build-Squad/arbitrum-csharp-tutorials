@@ -31,4 +31,4 @@ We show how you can use broadly supported Ethereum ecosystem tooling (Hardhat, E
 - ®️ [Arb Address Table](./Address-Table/)
 - 🌉 [Bridging Custom Token](./Custom-Token-Bridging/)
 
-<p align="center"><img src="assets/logo.svg" width="300"></p>
+![image](https://github.com/Build-Squad/arbitrum-csharp-tutorials/assets/151494725/8973efa8-102b-4dde-91dd-c55b4f7001f7)
