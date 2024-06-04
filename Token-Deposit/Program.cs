@@ -44,7 +44,7 @@ class Program
         };
         var transactionInput = l1DappTokenDeployment.CreateTransactionInput();
 
-        var a = ConfigurationHelper.GetAbiAndBytecode("DappToken");
+        //var a = ConfigurationHelper.GetAbiAndBytecode("DappToken");
         // Estimate gas for deployment
         var gasEstimate = l1Provider.Eth.GetContractDeploymentHandler<DappTokenDeployment>()
                                         .EstimateGasAsync(l1DappTokenDeployment).Result;
