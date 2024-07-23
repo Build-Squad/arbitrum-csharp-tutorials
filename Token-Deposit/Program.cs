@@ -47,11 +47,9 @@ class Program
             InitialSupply = 100 
         };
 
-        l1DappTokenDeployment.CreateTransactionInput();
 
-        //get abi and bytecode from compiled contract
         var a = ConfigurationHelper.GetAbiAndBytecode("DappToken");
-
+      
         // Estimate gas for deployment
         var gasEstimate = await l1Provider.Eth.GetContractDeploymentHandler<DappTokenDeployment>()
                                         .EstimateGasAsync(l1DappTokenDeployment);
