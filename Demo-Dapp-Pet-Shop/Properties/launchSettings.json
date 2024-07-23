@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Demo-Dapp-Pet-Shop": {
+      "commandName": "Project"
+    },
+    "WSL": {
+      "commandName": "WSL2",
+      "distributionName": ""
+    }
+  }
+}

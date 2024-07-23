@@ -14,7 +14,7 @@ module.exports = {
     },
     l2: {
       url: "http://localhost:8547",
-      chainId: 412346,
+      chainId: 31337,
     },
   },
 };
