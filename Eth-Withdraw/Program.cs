@@ -19,26 +19,33 @@ public class Program
 
         IConfiguration configuration = ConfigurationHelper.LoadConfiguration();
 
-        // Read values from appsettings.json
-        var devnetPrivKey = configuration["DevelopmentSettings:DEVNET_PRIVKEY"];
-
         Console.WriteLine("Deposit Eth via Arbitrum SDK");
 
-        // Set up L1 / L2 wallets connected to providers
+        // Read values from appsettings.json
         var walletPrivateKey = configuration["DevelopmentSettings:DEVNET_PRIVKEY"];
         var l1RpcUrl = configuration["DevelopmentSettings:L1RPC"];
         var l2RpcUrl = configuration["DevelopmentSettings:L2RPC"];
 
-        var account = new Account(walletPrivateKey);
-        var l2Provider = new Web3(account, l2RpcUrl);
+        // Set up L1 / L2 wallets connected to providers
+        var l1wallet = new Account("0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e");
+        var l2wallet = new Account("0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e");
+
+        var l1Provider = new Web3(l1wallet, l1RpcUrl);
+        var l2Provider = new Web3(l2wallet, l2RpcUrl);
+
         var l2WalletAddress = l2Provider.TransactionManager.Account.Address;
 
         var ethFromL2WithdrawAmount = Web3.Convert.ToWei(0.000001);
 
-        await Console.Out.WriteLineAsync("Withdraw Eth via Arbitrum SDK");
+        Console.WriteLine("Withdraw Eth via Arbitrum SDK");
 
-        // Replace with proper network configuration if necessary
-        // AddDefaultLocalNetwork();
+        // Add the default local network configuration to the SDK
+        // to allow this script to run on a local node
+        var network = AddDefaultLocalNetwork();
+
+        AddCustomNetwork(network.l1Network, network.l2Network);
+        var l2Network = await GetL2Network(l2Provider);
+        var ethBridger = new EthBridger(l2Network);
 
         var l2WalletInitialEthBalance = await l2Provider.Eth.GetBalance.SendRequestAsync(l2WalletAddress);
 
@@ -49,13 +56,9 @@ public class Program
         }
         Console.WriteLine("Wallet properly funded: initiating withdrawal now");
 
-        var l2Network = await GetL2Network(l2Provider);
-        var ethBridger = new EthBridger(l2Network);
-
-        var l2Signer = new SignerOrProvider(account, l2Provider);
+        var l2Signer = new SignerOrProvider(l2wallet, l2Provider);
 
         var withdrawTx = await ethBridger.Withdraw(new EthWithdrawParams { L2Signer = l2Signer, DestinationAddress = l2WalletAddress, Amount = ethFromL2WithdrawAmount });
-        //var withdrawRec = await l2Provider.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(withdrawTx);
 
         Console.WriteLine($"Ether withdrawal initiated! 🥳 {withdrawTx.TransactionHash}");
 

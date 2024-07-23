@@ -22,13 +22,13 @@ class Program
             Console.WriteLine("Simple Pet Shop DApp");
 
             //hardcoding the private key as of now for testing
-            var l2wallet = new Account("0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e");
+            var l2wallet = new Account("0x394d84674d89ffd6d02b8b768642ffc15cfd02ec7ea593c3d1cfc22da07f50dc", 421614);
             var web3 = new Web3(l2wallet, l2Rpc);
 
-            Console.WriteLine("Your l2l2wallet address: " + l2wallet.Address);
+            Console.WriteLine("Your l2wallet address: " + l2wallet.Address);
 
             //helper method to get abi and bytecode
-            var (abi, byteCode) = ConfigurationHelper.GetAbiAndBytecode("Adoption");
+            var (abi, byteCode) = ConfigurationHelper.GetAbiAndBytecode("DepositContract");
 
             //estimate gas for contract deployment
             var gas = await web3.Eth.DeployContract.EstimateGasAsync(
@@ -42,8 +42,7 @@ class Program
                             byteCode,
                             l2wallet.Address,
                             gas,
-                            null
-                            );
+                            null);
 
             var contractAddress = receipt.ContractAddress;
 
@@ -66,26 +65,31 @@ class Program
             // The expected owner of adopted pet is your l2wallet
             var expectedAdopter = l2wallet.Address;
 
-            var adoptFunction = contract.GetFunction("adopt");
+            //var adoptFunction = contract.GetFunction("adopt");
+            var depositEthFunction = contract.GetFunction("depositEth");
+            var estimatedGas = await depositEthFunction.EstimateGasAsync();
+            var functionReceipt = await depositEthFunction.SendTransactionAndWaitForReceiptAsync(expectedAdopter , estimatedGas, null, null);
+
+            var result = await depositEthFunction.CallAsync<dynamic>();
 
             // Adopting a pet
             Console.WriteLine("Adopting pet:");
 
             //estimate gas for adoption function
-            var estimatedGas = await adoptFunction.EstimateGasAsync(expectedPetId);
+            //var estimatedGas = await adoptFunction.EstimateGasAsync(expectedPetId);
 
             //get the receipt
-            var adoptionReceipt = await adoptFunction.SendTransactionAndWaitForReceiptAsync(expectedAdopter , estimatedGas, null, null, expectedPetId);
+            //var adoptionReceipt = await adoptFunction.SendTransactionAndWaitForReceiptAsync(expectedAdopter , estimatedGas, null, null, expectedPetId);
 
             //Check if the adoption event was emitted
-            if (adoptionReceipt.Logs.Count > 0)
-            {
-                Console.WriteLine("Pet adoption event emitted");
-            }
-            else
-            {
-                Console.WriteLine("No adoption event emitted");
-            }
+            //if (adoptionReceipt.Logs.Count > 0)
+            //{
+            //    Console.WriteLine("Pet adoption event emitted");
+            //}
+            //else
+            //{
+            //    Console.WriteLine("No adoption event emitted");
+            //}
 
             // Testing retrieval of a single pet's owner
             var adoptersFunction = contract.GetFunction("adopters");
@@ -95,7 +99,7 @@ class Program
             Console.WriteLine($"Pet adopted; owner: {adopter}");
 
             // Testing retrieval of all pet owners
-            var getAdoptersFunction = contract.GetFunction("getAdopters");
+                var getAdoptersFunction = contract.GetFunction("getAdopters");
 
             var adopters = await getAdoptersFunction.CallAsync<List<string>>();
 
